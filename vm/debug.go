@@ -1,18 +1,18 @@
-package main
+package vm
 
 import (
 	"fmt"
 )
 
-func dissasembleChunk(chunk *Chunk, name string) {
+func DisassembleChunk(chunk *Chunk, name string) {
 	fmt.Printf("===%s===\n", name)
 	var offset uint = 0
 	for offset < chunk.Count {
-		offset = dissasembleInstruction(chunk, offset)
+		offset = disassembleInstruction(chunk, offset)
 	}
 }
 
-func dissasembleInstruction(chunk *Chunk, offset uint) uint {
+func disassembleInstruction(chunk *Chunk, offset uint) uint {
 	fmt.Printf("%04d ", offset)
 
 	if offset > 0 && chunk.Lines[offset] == chunk.Lines[offset-1] {
@@ -26,6 +26,16 @@ func dissasembleInstruction(chunk *Chunk, offset uint) uint {
 	switch instruction {
 	case OP_CONSTANT:
 		return constantInstruction("OP_CONSTANT", chunk, offset)
+	case OP_ADD:
+		return simpleInstruction("OP_ADD", offset)
+	case OP_SUBTRACT:
+		return simpleInstruction("OP_SUBTRACT", offset)
+	case OP_MULTIPLY:
+		return simpleInstruction("OP_MULTIPLY", offset)
+	case OP_DIVIDE:
+		return simpleInstruction("OP_DIVIDE", offset)
+	case OP_NEGATE:
+		return simpleInstruction("OP_NEGATE", offset)
 	case OP_RETURN:
 		return simpleInstruction("OP_RETURN", offset)
 	default:
