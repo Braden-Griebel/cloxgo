@@ -17,8 +17,11 @@ type VM struct {
 type InterpretResult byte
 
 const (
+	// No Errors
 	INTERPRET_OK InterpretResult = iota
+	// Error during compilation step
 	INTERPRET_COMPILE_ERROR
+	// Error during runtime
 	INTERPRET_RUNTIME_ERROR
 )
 
