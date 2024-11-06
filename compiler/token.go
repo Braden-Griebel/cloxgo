@@ -1,0 +1,133 @@
+package compiler
+
+type TokenType byte
+
+const (
+	// Single-character tokens.
+	TOKEN_LEFT_PAREN TokenType = iota
+	TOKEN_RIGHT_PAREN
+	TOKEN_LEFT_BRACE
+	TOKEN_RIGHT_BRACE
+
+	TOKEN_COMMA
+	TOKEN_DOT
+	TOKEN_MINUS
+	TOKEN_PLUS
+
+	TOKEN_SEMICOLON
+	TOKEN_SLASH
+	TOKEN_STAR
+
+	// One or two character tokens.
+	TOKEN_BANG
+	TOKEN_BANG_EQUAL
+
+	TOKEN_EQUAL
+	TOKEN_EQUAL_EQUAL
+
+	TOKEN_GREATER
+	TOKEN_GREATER_EQUAL
+
+	TOKEN_LESS
+	TOKEN_LESS_EQUAL
+
+	// Literals.
+	TOKEN_IDENTIFIER
+	TOKEN_STRING
+	TOKEN_NUMBER
+
+	// Keywords.
+	TOKEN_AND
+	TOKEN_CLASS
+	TOKEN_ELSE
+	TOKEN_FALSE
+
+	TOKEN_FOR
+	TOKEN_FUN
+	TOKEN_IF
+	TOKEN_NIL
+	TOKEN_OR
+
+	TOKEN_PRINT
+	TOKEN_RETURN
+	TOKEN_SUPER
+	TOKEN_THIS
+
+	TOKEN_TRUE
+	TOKEN_VAR
+	TOKEN_WHILE
+
+	TOKEN_ERROR
+	TOKEN_EOF
+)
+
+var tokenTypeNames = map[TokenType]string{
+	// Single-character tokens.
+	TOKEN_LEFT_PAREN:  "LEFT_PAREN",
+	TOKEN_RIGHT_PAREN: "RIGHT_PAREN",
+	TOKEN_LEFT_BRACE:  "LEFT_BRACE",
+	TOKEN_RIGHT_BRACE: "RIGHT_BRACE",
+
+	TOKEN_COMMA: "COMMA",
+	TOKEN_DOT:   "DOT",
+	TOKEN_MINUS: "MINUS",
+	TOKEN_PLUS:  "PLUS",
+
+	TOKEN_SEMICOLON: "SEMICOLON",
+	TOKEN_SLASH:     "SLASH",
+	TOKEN_STAR:      "STAR",
+
+	// One or two character tokens.
+	TOKEN_BANG:       "BANG",
+	TOKEN_BANG_EQUAL: "BANG_EQUAL",
+
+	TOKEN_EQUAL:       "EQUAL",
+	TOKEN_EQUAL_EQUAL: "EQUAL_EQUAL",
+
+	TOKEN_GREATER:       "GREATER",
+	TOKEN_GREATER_EQUAL: "GREATER_EQUAL",
+
+	TOKEN_LESS:       "LESS",
+	TOKEN_LESS_EQUAL: "LESS_EQUAL",
+
+	// Literals.
+	TOKEN_IDENTIFIER: "IDENTIFIER",
+	TOKEN_STRING:     "STRING",
+	TOKEN_NUMBER:     "NUMBER",
+
+	// Keywords.
+	TOKEN_AND:   "AND",
+	TOKEN_CLASS: "CLASS",
+	TOKEN_ELSE:  "ELSE",
+	TOKEN_FALSE: "FALSE",
+
+	TOKEN_FOR: "FOR",
+	TOKEN_FUN: "FUN",
+	TOKEN_IF:  "IF",
+	TOKEN_NIL: "NIL",
+	TOKEN_OR:  "OR",
+
+	TOKEN_PRINT:  "PRINT",
+	TOKEN_RETURN: "RETURN",
+	TOKEN_SUPER:  "SUPER",
+	TOKEN_THIS:   "THIS",
+
+	TOKEN_TRUE:  "TRUE",
+	TOKEN_VAR:   "VAR",
+	TOKEN_WHILE: "WHILE",
+
+	TOKEN_ERROR: "ERROR",
+	TOKEN_EOF:   "EOF",
+}
+
+func (tt TokenType) String() string {
+	return tokenTypeNames[tt]
+}
+
+type Token struct {
+	err       *string
+	tokenType TokenType
+	start     uint
+	length    uint
+	line      int
+}
