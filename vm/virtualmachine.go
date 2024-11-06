@@ -1,6 +1,9 @@
 package vm
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/Braden-Griebel/cloxgo/compiler"
+)
 
 const DEBUG_TRACE_EXECUTION bool = false
 
@@ -29,10 +32,9 @@ func InitVM() VM {
 	return VM{}
 }
 
-func (machine *VM) Interpret(chunk *Chunk) InterpretResult {
-	machine.chunk = chunk
-	machine.ip = 0
-	return machine.run()
+func (machine *VM) Interpret(source string) InterpretResult {
+	compiler.Compile(source)
+	return INTERPRET_OK
 }
 
 // Stack Functions

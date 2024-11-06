@@ -1,30 +1,55 @@
 package main
 
-import "github.com/Braden-Griebel/cloxgo/vm"
+import (
+	"bufio"
+	"fmt"
+	"github.com/Braden-Griebel/cloxgo/vm"
+	"io"
+	"os"
+)
 
 func main() {
 	machine := vm.InitVM()
-	chunk := vm.InitChunk()
 
-	constant := vm.AddConstant(&chunk, 1.2)
-	vm.WriteChunk(&chunk, vm.OP_CONSTANT, 123)
-	vm.WriteChunk(&chunk, vm.OpCode(constant), 123)
+	if len(os.Args) == 1 {
+		repl(&machine)
+	} else if len(os.Args) == 2 {
+		runFile(&machine, os.Args[1])
+	} else {
+		_, err := os.Stderr.WriteString("Usage: cloxgo [path]\n")
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 
-	constant = vm.AddConstant(&chunk, 3.4)
-	vm.WriteChunk(&chunk, vm.OP_CONSTANT, 123)
-	vm.WriteChunk(&chunk, vm.OpCode(constant), 123)
+func repl(machine *vm.VM) {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print("> ")
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				return
+			}
+			panic(err)
+		}
+		_ = machine.Interpret(line)
+	}
+}
 
-	vm.WriteChunk(&chunk, vm.OP_ADD, 123)
+func runFile(machine *vm.VM, filename string) {
+	program, err := os.ReadFile(filename)
+	if err != nil {
+		panic("Couldn't read file: " + filename)
+	}
+	programStr := string(program)
+	result := machine.Interpret(programStr)
+	if result == vm.INTERPRET_COMPILE_ERROR {
+		os.Exit(65)
+	}
+	if result == vm.INTERPRET_RUNTIME_ERROR {
+		os.Exit(70)
+	}
 
-	constant = vm.AddConstant(&chunk, 5.6)
-	vm.WriteChunk(&chunk, vm.OP_CONSTANT, 123)
-	vm.WriteChunk(&chunk, vm.OpCode(constant), 123)
-
-	vm.WriteChunk(&chunk, vm.OP_DIVIDE, 123)
-	vm.WriteChunk(&chunk, vm.OP_NEGATE, 123)
-
-	vm.WriteChunk(&chunk, vm.OP_RETURN, 123)
-
-	vm.DisassembleChunk(&chunk, "Simple Return")
-	machine.Interpret(&chunk)
 }
