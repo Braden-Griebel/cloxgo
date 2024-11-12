@@ -33,8 +33,18 @@ func InitVM() VM {
 }
 
 func (machine *VM) Interpret(source string) InterpretResult {
-	compiler.Compile(source)
-	return INTERPRET_OK
+	var chunk Chunk
+
+	if !compiler.Compile(source, &chunk) {
+		return INTERPRET_COMPILE_ERROR
+	}
+
+	machine.chunk = &chunk
+	machine.ip = 0
+
+	result := machine.run()
+
+	return result
 }
 
 // Stack Functions
