@@ -2,9 +2,9 @@ package vm
 
 import (
 	"fmt"
-	"github.com/Braden-Griebel/cloxgo/compiler"
 )
 
+const DEBUG_PRINT_CODE bool = false
 const DEBUG_TRACE_EXECUTION bool = false
 
 // Maximum Size of the Stack
@@ -35,7 +35,7 @@ func InitVM() VM {
 func (machine *VM) Interpret(source string) InterpretResult {
 	var chunk Chunk
 
-	if !compiler.Compile(source, &chunk) {
+	if !Compile(source, &chunk) {
 		return INTERPRET_COMPILE_ERROR
 	}
 
@@ -71,7 +71,7 @@ func (machine *VM) readConstant() Value {
 func (machine *VM) binaryOp(f func(Value, Value) Value) {
 	a := machine.popValue()
 	b := machine.popValue()
-	machine.pushValue(f(a, b))
+	machine.pushValue(f(b, a))
 
 }
 
