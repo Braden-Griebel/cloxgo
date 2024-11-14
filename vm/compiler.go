@@ -37,31 +37,31 @@ func (parser *Parser) InitRules() {
 		TOKEN_SEMICOLON:     {nil, nil, PREC_NONE},
 		TOKEN_SLASH:         {nil, parser.binary, PREC_FACTOR},
 		TOKEN_STAR:          {nil, parser.binary, PREC_FACTOR},
-		TOKEN_BANG:          {nil, nil, PREC_NONE},
+		TOKEN_BANG:          {parser.unary, nil, PREC_NONE},
 		TOKEN_BANG_EQUAL:    {nil, nil, PREC_NONE},
 		TOKEN_EQUAL:         {nil, nil, PREC_NONE},
-		TOKEN_EQUAL_EQUAL:   {nil, nil, PREC_NONE},
-		TOKEN_GREATER:       {nil, nil, PREC_NONE},
-		TOKEN_GREATER_EQUAL: {nil, nil, PREC_NONE},
-		TOKEN_LESS:          {nil, nil, PREC_NONE},
-		TOKEN_LESS_EQUAL:    {nil, nil, PREC_NONE},
+		TOKEN_EQUAL_EQUAL:   {nil, parser.binary, PREC_EQUALITY},
+		TOKEN_GREATER:       {nil, parser.binary, PREC_COMPARISON},
+		TOKEN_GREATER_EQUAL: {nil, parser.binary, PREC_COMPARISON},
+		TOKEN_LESS:          {nil, parser.binary, PREC_COMPARISON},
+		TOKEN_LESS_EQUAL:    {nil, parser.binary, PREC_COMPARISON},
 		TOKEN_IDENTIFIER:    {nil, nil, PREC_NONE},
 		TOKEN_STRING:        {nil, nil, PREC_NONE},
 		TOKEN_NUMBER:        {parser.number, nil, PREC_NONE},
 		TOKEN_AND:           {nil, nil, PREC_NONE},
 		TOKEN_CLASS:         {nil, nil, PREC_NONE},
 		TOKEN_ELSE:          {nil, nil, PREC_NONE},
-		TOKEN_FALSE:         {nil, nil, PREC_NONE},
+		TOKEN_FALSE:         {parser.literal, nil, PREC_NONE},
 		TOKEN_FOR:           {nil, nil, PREC_NONE},
 		TOKEN_FUN:           {nil, nil, PREC_NONE},
 		TOKEN_IF:            {nil, nil, PREC_NONE},
-		TOKEN_NIL:           {nil, nil, PREC_NONE},
+		TOKEN_NIL:           {parser.literal, nil, PREC_NONE},
 		TOKEN_OR:            {nil, nil, PREC_NONE},
 		TOKEN_PRINT:         {nil, nil, PREC_NONE},
 		TOKEN_RETURN:        {nil, nil, PREC_NONE},
 		TOKEN_SUPER:         {nil, nil, PREC_NONE},
 		TOKEN_THIS:          {nil, nil, PREC_NONE},
-		TOKEN_TRUE:          {nil, nil, PREC_NONE},
+		TOKEN_TRUE:          {parser.literal, nil, PREC_NONE},
 		TOKEN_VAR:           {nil, nil, PREC_NONE},
 		TOKEN_WHILE:         {nil, nil, PREC_NONE},
 		TOKEN_ERROR:         {nil, nil, PREC_NONE},
@@ -91,7 +91,7 @@ func (parser *Parser) number() {
 			parser.scanner.code[parser.previous.start:parser.previous.start+parser.previous.length],
 		), 64,
 	)
-	parser.emitConstant(Value(value))
+	parser.emitConstant(numberToVal(value))
 }
 
 func (parser *Parser) emitConstant(value Value) {
@@ -118,6 +118,8 @@ func (parser *Parser) unary() {
 	parser.parsePrecedence(PREC_UNARY)
 
 	switch operatorType {
+	case TOKEN_BANG:
+		parser.emitByte(OP_NOT)
 	case TOKEN_MINUS:
 		parser.emitByte(OP_NEGATE)
 	default:
@@ -164,6 +166,18 @@ func (parser *Parser) binary() {
 	parser.parsePrecedence(rule.precedence + 1)
 
 	switch operatorType {
+	case TOKEN_BANG_EQUAL:
+		parser.emitBytes(OP_EQUAL, OP_NOT)
+	case TOKEN_EQUAL_EQUAL:
+		parser.emitByte(OP_EQUAL)
+	case TOKEN_GREATER:
+		parser.emitByte(OP_GREATER)
+	case TOKEN_GREATER_EQUAL:
+		parser.emitBytes(OP_LESS, OP_NOT)
+	case TOKEN_LESS:
+		parser.emitByte(OP_LESS)
+	case TOKEN_LESS_EQUAL:
+		parser.emitBytes(OP_GREATER, OP_NOT)
 	case TOKEN_PLUS:
 		parser.emitByte(OP_ADD)
 	case TOKEN_MINUS:
@@ -172,6 +186,19 @@ func (parser *Parser) binary() {
 		parser.emitByte(OP_MULTIPLY)
 	case TOKEN_SLASH:
 		parser.emitByte(OP_DIVIDE)
+	default:
+		return
+	}
+}
+
+func (parser *Parser) literal() {
+	switch parser.previous.tokenType {
+	case TOKEN_FALSE:
+		parser.emitByte(OP_FALSE)
+	case TOKEN_TRUE:
+		parser.emitByte(OP_TRUE)
+	case TOKEN_NIL:
+		parser.emitByte(OP_NIL)
 	default:
 		return
 	}

@@ -4,19 +4,33 @@ type OpCode byte
 
 // Possible OpCodes
 const (
-	// Represents a constant value
+	// OP_CONSTANT Represents a constant value
 	OP_CONSTANT OpCode = iota
-	// Represents Binary Addition
+	// OP_NIL Represents a Nil Value
+	OP_NIL
+	// OP_TRUE represents a true value
+	OP_TRUE
+	// OP_FALSE represents a false value
+	OP_FALSE
+	// OP_EQUAL represents the equality operator
+	OP_EQUAL
+	// OP_GREATER represents the greater than operator
+	OP_GREATER
+	// OP_LESS represents the less than operator
+	OP_LESS
+	// OP_ADD Represents Binary Addition
 	OP_ADD
-	// Represents Binary Subtraction
+	// OP_SUBTRACT Represents Binary Subtraction
 	OP_SUBTRACT
-	// Represents Binary Multiplication
+	// OP_MULTIPLY Represents Binary Multiplication
 	OP_MULTIPLY
-	// Represents Binary Division
+	// OP_DIVIDE Represents Binary Division
 	OP_DIVIDE
-	// Represents Unary Negation
+	// OP_NOT represents Unary Logical Not
+	OP_NOT
+	// OP_NEGATE Represents Unary Negation
 	OP_NEGATE
-	// Represents a function return
+	// OP_RETURN Represents a function return
 	OP_RETURN
 )
 

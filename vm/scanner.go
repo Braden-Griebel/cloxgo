@@ -68,13 +68,13 @@ func (scanner *Scanner) scanToken() Token {
 		if scanner.match('=') {
 			return scanner.makeToken(TOKEN_LESS_EQUAL)
 		} else {
-			scanner.makeToken(TOKEN_LESS)
+			return scanner.makeToken(TOKEN_LESS)
 		}
 	case '>':
 		if scanner.match('=') {
 			return scanner.makeToken(TOKEN_GREATER_EQUAL)
 		} else {
-			scanner.makeToken(TOKEN_GREATER)
+			return scanner.makeToken(TOKEN_GREATER)
 		}
 	case '"':
 		return scanner.string()

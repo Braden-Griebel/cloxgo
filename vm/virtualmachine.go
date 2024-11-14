@@ -2,6 +2,7 @@ package vm
 
 import (
 	"fmt"
+	"os"
 )
 
 const DEBUG_PRINT_CODE bool = false
@@ -68,11 +69,16 @@ func (machine *VM) readConstant() Value {
 	return machine.chunk.Constants.values[machine.readByte()]
 }
 
-func (machine *VM) binaryOp(f func(Value, Value) Value) {
+func (machine *VM) binaryOp(f func(Value, Value) Value) InterpretResult {
+	if !isNumber(machine.peek(0)) || !isNumber(machine.peek(1)) {
+		machine.runtimeError("Operands must be numbers.")
+		return INTERPRET_RUNTIME_ERROR
+	}
+
 	a := machine.popValue()
 	b := machine.popValue()
 	machine.pushValue(f(b, a))
-
+	return INTERPRET_OK
 }
 
 func (machine *VM) run() InterpretResult {
@@ -92,16 +98,48 @@ func (machine *VM) run() InterpretResult {
 		case OP_CONSTANT:
 			constant := machine.readConstant()
 			machine.pushValue(constant)
+		case OP_NIL:
+			machine.pushValue(nilToVal())
+		case OP_TRUE:
+			machine.pushValue(boolToVal(true))
+		case OP_FALSE:
+			machine.pushValue(boolToVal(false))
+		case OP_EQUAL:
+			a := machine.popValue()
+			b := machine.popValue()
+			machine.pushValue(boolToVal(valuesEqual(a, b)))
+		case OP_GREATER:
+			machine.binaryOp(greater)
+		case OP_LESS:
+			machine.binaryOp(less)
 		case OP_ADD:
-			machine.binaryOp(add)
+			res := machine.binaryOp(add)
+			if res != INTERPRET_OK {
+				return res
+			}
 		case OP_SUBTRACT:
-			machine.binaryOp(subtract)
+			res := machine.binaryOp(subtract)
+			if res != INTERPRET_OK {
+				return res
+			}
 		case OP_MULTIPLY:
-			machine.binaryOp(multiply)
+			res := machine.binaryOp(multiply)
+			if res != INTERPRET_OK {
+				return res
+			}
 		case OP_DIVIDE:
-			machine.binaryOp(divide)
+			res := machine.binaryOp(divide)
+			if res != INTERPRET_OK {
+				return res
+			}
+		case OP_NOT:
+			machine.pushValue(boolToVal(isFalsey(machine.popValue())))
 		case OP_NEGATE:
-			machine.pushValue(-machine.popValue())
+			if !isNumber(machine.peek(0)) {
+				machine.runtimeError("Operand must be a number.")
+				return INTERPRET_RUNTIME_ERROR
+			}
+			machine.pushValue(numberToVal(-valAsNumber(machine.popValue())))
 		case OP_RETURN:
 			printValue(machine.popValue())
 			fmt.Printf("\n")
@@ -111,16 +149,55 @@ func (machine *VM) run() InterpretResult {
 	}
 }
 
+func (machine *VM) peek(position uint) Value {
+	return machine.stack[machine.stackTop-1-position]
+}
+
+func (machine *VM) runtimeError(format string, args ...interface{}) {
+	_, _ = fmt.Fprintf(os.Stderr, format, args...)
+	_, _ = os.Stderr.WriteString("\n")
+
+	instruction := machine.ip - 1
+	line := machine.chunk.Lines[instruction]
+	_, _ = fmt.Fprintf(os.Stderr, "[line %d] in script\n", line)
+}
+
 // Functions Passed to Binary
 func add(a Value, b Value) Value {
-	return a + b
+	if !isNumber(a) || !isNumber(b) {
+		panic("Tried to add non-numbers.")
+	}
+	return numberToVal(a.as.number + b.as.number)
 }
 func subtract(a Value, b Value) Value {
-	return a - b
+	if !isNumber(a) || !isNumber(b) {
+		panic("Tried to subtract non-numbers.")
+	}
+	return numberToVal(a.as.number - b.as.number)
 }
 func multiply(a Value, b Value) Value {
-	return a * b
+	if !isNumber(a) || !isNumber(b) {
+		panic("Tried to multiply non-numbers.")
+	}
+	return numberToVal(a.as.number * b.as.number)
 }
 func divide(a Value, b Value) Value {
-	return a / b
+	if !isNumber(a) || !isNumber(b) {
+		panic("Tried to divide non-numbers.")
+	}
+	return numberToVal(a.as.number / b.as.number)
+}
+
+func less(a Value, b Value) Value {
+	if !isNumber(a) || !isNumber(b) {
+		panic("Tried to compare non-numbers.")
+	}
+	return boolToVal(a.as.number < b.as.number)
+}
+
+func greater(a Value, b Value) Value {
+	if !isNumber(a) || !isNumber(b) {
+		panic("Tried to compare non-numbers.")
+	}
+	return boolToVal(a.as.number > b.as.number)
 }
