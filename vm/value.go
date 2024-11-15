@@ -19,20 +19,78 @@ const (
 
 // region Value
 
-// ValueAs represents the data associated with a Value
-type ValueAs struct {
-	// Represents a Boolean
-	boolean bool
-	// Represents a numerical value
-	number float64
+// ValueData represents the data associated with a Value
+type ValueData interface {
+	asBool() bool
+	asNumber() float64
+	asNil()
 }
+
+// region Boolean
+
+type Boolean struct {
+	value bool
+}
+
+// Implement the ValueData type
+func (b *Boolean) asBool() bool {
+	return b.value
+}
+
+func (b *Boolean) asNumber() float64 {
+	panic("Can't coerce a bool to float")
+}
+
+func (b *Boolean) asNil() {
+	panic("Can't coerce bool to nil")
+}
+
+// endregion Boolean
+
+// region Number
+
+type Number struct {
+	value float64
+}
+
+func (n *Number) asBool() bool {
+	panic("Can't coerce number to bool")
+}
+
+func (n *Number) asNumber() float64 {
+	return n.value
+}
+
+func (n *Number) asNil() {
+	panic("Can't coerce nil to float")
+}
+
+// endregion Number
+
+// region Nil
+
+type Nil struct{}
+
+func (n *Nil) asBool() bool {
+	panic("Can't coerce nil to bool")
+}
+
+func (n *Nil) asNumber() float64 {
+	panic("Can't coerce nil to float")
+}
+
+func (n *Nil) asNil() {
+	return
+}
+
+// endregion Nil
 
 // Value represents data in lox
 type Value struct {
 	// Type of the Value
 	typeof ValueType
 	// Data associated with a Value
-	as ValueAs
+	data ValueData
 }
 
 // endregion Value
@@ -76,8 +134,8 @@ func printValue(value Value) {
 func boolToVal(boolean bool) Value {
 	return Value{
 		typeof: VAL_BOOL,
-		as: ValueAs{
-			boolean: boolean,
+		data: &Boolean{
+			value: boolean,
 		},
 	}
 }
@@ -91,24 +149,24 @@ func nilToVal() Value {
 func numberToVal(number float64) Value {
 	return Value{
 		typeof: VAL_NUMBER,
-		as: ValueAs{
-			number: number,
+		data: &Number{
+			value: number,
 		},
 	}
 }
 
 func valAsBool(value Value) bool {
 	if value.typeof != VAL_BOOL {
-		panic("Tried to interpret an invalid value as bool")
+		panic("Tried to interpret an invalid value data bool")
 	}
-	return value.as.boolean
+	return value.data.asBool()
 }
 
 func valAsNumber(value Value) float64 {
 	if value.typeof != VAL_NUMBER {
-		panic("Tried to interpret an invalid value as number")
+		panic("Tried to interpret an invalid value data number")
 	}
-	return value.as.number
+	return value.data.asNumber()
 }
 
 func valAsNil() {

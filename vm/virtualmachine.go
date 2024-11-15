@@ -167,37 +167,37 @@ func add(a Value, b Value) Value {
 	if !isNumber(a) || !isNumber(b) {
 		panic("Tried to add non-numbers.")
 	}
-	return numberToVal(a.as.number + b.as.number)
+	return numberToVal(a.data.asNumber() + b.data.asNumber())
 }
 func subtract(a Value, b Value) Value {
 	if !isNumber(a) || !isNumber(b) {
 		panic("Tried to subtract non-numbers.")
 	}
-	return numberToVal(a.as.number - b.as.number)
+	return numberToVal(a.data.asNumber() - b.data.asNumber())
 }
 func multiply(a Value, b Value) Value {
 	if !isNumber(a) || !isNumber(b) {
 		panic("Tried to multiply non-numbers.")
 	}
-	return numberToVal(a.as.number * b.as.number)
+	return numberToVal(a.data.asNumber() * b.data.asNumber())
 }
 func divide(a Value, b Value) Value {
 	if !isNumber(a) || !isNumber(b) {
 		panic("Tried to divide non-numbers.")
 	}
-	return numberToVal(a.as.number / b.as.number)
+	return numberToVal(a.data.asNumber() / b.data.asNumber())
 }
 
 func less(a Value, b Value) Value {
 	if !isNumber(a) || !isNumber(b) {
 		panic("Tried to compare non-numbers.")
 	}
-	return boolToVal(a.as.number < b.as.number)
+	return boolToVal(a.data.asNumber() < b.data.asNumber())
 }
 
 func greater(a Value, b Value) Value {
 	if !isNumber(a) || !isNumber(b) {
 		panic("Tried to compare non-numbers.")
 	}
-	return boolToVal(a.as.number > b.as.number)
+	return boolToVal(a.data.asNumber() > b.data.asNumber())
 }
