@@ -16,6 +16,7 @@ type VM struct {
 	ip       uint
 	stack    [STACK_MAX]Value
 	stackTop uint
+	strings  map[string]*string
 	objects  *Obj
 }
 
@@ -31,7 +32,9 @@ const (
 )
 
 func InitVM() VM {
-	return VM{}
+	newVM := VM{}
+	newVM.strings = make(map[string]*string)
+	return newVM
 }
 
 func (machine *VM) FreeVM() {
@@ -90,8 +93,26 @@ func (machine *VM) Interpret(source string) InterpretResult {
 func (machine *VM) pushValue(value Value) {
 	// Check if the value being added is an object, if it is,
 	// add it to the object linked list
+	// Further, if it is a string, add it to the strings table, and intern it
 	if isObj(value) {
 		newObj := value.data.asObj()
+		// If the object is a string, intern it
+		if isString(newObj) {
+			newString := newObj.data.asString()
+			// Check if the newString already has an entry
+			newStringPointer, ok := machine.strings[*newString]
+			if ok {
+				// The string exists in the hash table
+				newObj.data = &StringObj{value: newStringPointer}
+			} else {
+				// The string doesn't yet exist in the hash table
+				// Insert it
+				machine.strings[*newString] = newString
+				// Then set the newObj to point to it
+				newObj.data = &StringObj{value: newString}
+			}
+		}
+
 		newObj.next = machine.objects
 		machine.objects = newObj
 	}
@@ -223,7 +244,7 @@ func add(a Value, b Value) Value {
 		aString := a.data.asObj().data.asString()
 		bString := b.data.asObj().data.asString()
 		newString := *aString + *bString
-		return objToVal(newString)
+		return objToVal(&newString)
 
 	} else if isNumber(a) && isNumber(b) {
 		return numberToVal(a.data.asNumber() + b.data.asNumber())

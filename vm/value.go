@@ -278,7 +278,7 @@ func valuesEqual(a Value, b Value) bool {
 		if isString(aObj) && isString(bObj) {
 			aString := valAsObj(a).data.asString()
 			bString := valAsObj(b).data.asString()
-			return *aString == *bString
+			return aString == bString
 		}
 		// No other objects implemented yet, so just return false
 		return false

@@ -35,12 +35,11 @@ type Obj struct {
 func dataToObj(data interface{}) *Obj {
 	var newObj Obj
 	switch data.(type) {
-	case string:
-		stringData := data.(string)
+	case *string:
 		newObj = Obj{
 			typeof: STRING_TYPE,
 			data: &StringObj{
-				value: &stringData,
+				value: data.(*string),
 			},
 		}
 	default:

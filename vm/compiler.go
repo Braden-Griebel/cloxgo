@@ -95,7 +95,8 @@ func (parser *Parser) number() {
 }
 
 func (parser *Parser) string() {
-	parser.emitConstant(objToVal(string(parser.scanner.code[parser.previous.start+1 : parser.previous.start+parser.previous.length-1])))
+	newString := string(parser.scanner.code[parser.previous.start+1 : parser.previous.start+parser.previous.length-1])
+	parser.emitConstant(objToVal(&newString))
 }
 
 func (parser *Parser) emitConstant(value Value) {
