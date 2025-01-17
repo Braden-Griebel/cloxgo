@@ -43,7 +43,7 @@ func (machine *VM) FreeVM() {
 		return
 	}
 	// Loop through the objects freeing them
-	// This really isn't neccesary due to go's garbage collector
+	// This really isn't necessary due to go's garbage collector
 	// but is helpful for learning about garbage collection strategies
 	for {
 		// Should always be false, just here for safety
@@ -71,6 +71,9 @@ func (machine *VM) FreeVM() {
 	}
 	// Now that all references within the object chain have been dropped
 	machine.objects = nil
+	// Empty the strings map
+	machine.strings = make(map[string]*string)
+	// End of function
 	return
 }
 
