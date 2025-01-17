@@ -16,6 +16,7 @@ type VM struct {
 	ip       uint
 	stack    [STACK_MAX]Value
 	stackTop uint
+	objects  *Obj
 }
 
 type InterpretResult byte
@@ -31,6 +32,43 @@ const (
 
 func InitVM() VM {
 	return VM{}
+}
+
+func (machine *VM) FreeVM() {
+	currentObject := machine.objects
+	if currentObject == nil {
+		return
+	}
+	// Loop through the objects freeing them
+	// This really isn't neccesary due to go's garbage collector
+	// but is helpful for learning about garbage collection strategies
+	for {
+		// Should always be false, just here for safety
+		if currentObject == nil {
+			break
+		}
+		// Set the current object data to nil
+		// this should drop the reference to the object and
+		// free the memory
+		// Could also just set the references to the whole object to
+		// nil and let the GC collect them, but again, this
+		// is just for learning
+		currentObject.data = nil
+		// Get the next object to work on
+		nextObject := currentObject.next
+		// Drop the reference to the next object from current object
+		currentObject.next = nil
+		// If there is no next object exit the loop
+		if nextObject == nil {
+			break
+		}
+		// If there is a next object, set that to be current and
+		// go about freeing it
+		currentObject = nextObject
+	}
+	// Now that all references within the object chain have been dropped
+	machine.objects = nil
+	return
 }
 
 func (machine *VM) Interpret(source string) InterpretResult {
@@ -50,6 +88,13 @@ func (machine *VM) Interpret(source string) InterpretResult {
 
 // Stack Functions
 func (machine *VM) pushValue(value Value) {
+	// Check if the value being added is an object, if it is,
+	// add it to the object linked list
+	if isObj(value) {
+		newObj := value.data.asObj()
+		newObj.next = machine.objects
+		machine.objects = newObj
+	}
 	machine.stack[machine.stackTop] = value
 	machine.stackTop++
 }
@@ -70,9 +115,17 @@ func (machine *VM) readConstant() Value {
 }
 
 func (machine *VM) binaryOp(f func(Value, Value) Value) InterpretResult {
-	if !isNumber(machine.peek(0)) || !isNumber(machine.peek(1)) {
-		machine.runtimeError("Operands must be numbers.")
+	if (!isNumber(machine.peek(0)) || !isNumber(machine.peek(1))) &&
+		(!isObj(machine.peek(0)) && !isObj(machine.peek(1))) {
+		machine.runtimeError("Operands must be numbers or strings.")
 		return INTERPRET_RUNTIME_ERROR
+	}
+	// If they are both object, make sure they are both strings
+	if !isNumber(machine.peek(0)) || !isNumber(machine.peek(1)) {
+		if !isString(machine.peek(0).data.asObj()) || !isString(machine.peek(1).data.asObj()) {
+			machine.runtimeError("Operands must be numbers or strings.")
+			return INTERPRET_RUNTIME_ERROR
+		}
 	}
 
 	a := machine.popValue()
@@ -145,7 +198,6 @@ func (machine *VM) run() InterpretResult {
 			fmt.Printf("\n")
 			return INTERPRET_OK
 		}
-
 	}
 }
 
@@ -164,10 +216,20 @@ func (machine *VM) runtimeError(format string, args ...interface{}) {
 
 // Functions Passed to Binary
 func add(a Value, b Value) Value {
-	if !isNumber(a) || !isNumber(b) {
-		panic("Tried to add non-numbers.")
+	if isObj(a) && isObj(b) {
+		if !isString(a.data.asObj()) || !isString(b.data.asObj()) {
+			panic("Tried to add two objects which are not both strings")
+		}
+		aString := a.data.asObj().data.asString()
+		bString := b.data.asObj().data.asString()
+		newString := *aString + *bString
+		return objToVal(newString)
+
+	} else if isNumber(a) && isNumber(b) {
+		return numberToVal(a.data.asNumber() + b.data.asNumber())
 	}
-	return numberToVal(a.data.asNumber() + b.data.asNumber())
+	panic("Tried to add non-numbers.")
+
 }
 func subtract(a Value, b Value) Value {
 	if !isNumber(a) || !isNumber(b) {

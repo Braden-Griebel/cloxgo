@@ -18,9 +18,11 @@ func main() {
 	} else {
 		_, err := os.Stderr.WriteString("Usage: cloxgo [path]\n")
 		if err != nil {
+			machine.FreeVM()
 			panic(err)
 		}
 	}
+	machine.FreeVM()
 }
 
 func repl(machine *vm.VM) {
@@ -32,6 +34,7 @@ func repl(machine *vm.VM) {
 			if err == io.EOF {
 				return
 			}
+			machine.FreeVM()
 			panic(err)
 		}
 		_ = machine.Interpret(line)
@@ -46,9 +49,11 @@ func runFile(machine *vm.VM, filename string) {
 	programStr := string(program)
 	result := machine.Interpret(programStr)
 	if result == vm.INTERPRET_COMPILE_ERROR {
+		machine.FreeVM()
 		os.Exit(65)
 	}
 	if result == vm.INTERPRET_RUNTIME_ERROR {
+		machine.FreeVM()
 		os.Exit(70)
 	}
 

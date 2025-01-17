@@ -5,6 +5,7 @@ import (
 )
 
 // region Typing
+
 // ValueType represents the Type of a Value (bool, nil, number)
 type ValueType byte
 
@@ -13,6 +14,7 @@ const (
 	VAL_BOOL ValueType = iota
 	VAL_NIL
 	VAL_NUMBER
+	VAL_OBJ
 )
 
 // endregion Typing
@@ -24,6 +26,7 @@ type ValueData interface {
 	asBool() bool
 	asNumber() float64
 	asNil()
+	asObj() *Obj
 }
 
 // region Boolean
@@ -43,6 +46,10 @@ func (b *Boolean) asNumber() float64 {
 
 func (b *Boolean) asNil() {
 	panic("Can't coerce bool to nil")
+}
+
+func (b *Boolean) asObj() *Obj {
+	panic("Can't coerce bool to obj")
 }
 
 // endregion Boolean
@@ -65,6 +72,10 @@ func (n *Number) asNil() {
 	panic("Can't coerce nil to float")
 }
 
+func (n *Number) asObj() *Obj {
+	panic("Can't coerce number to obj")
+}
+
 // endregion Number
 
 // region Nil
@@ -83,7 +94,35 @@ func (n *Nil) asNil() {
 	return
 }
 
+func (n *Nil) asObj() *Obj {
+	panic("Can't coerce obj to nil")
+}
+
 // endregion Nil
+
+// region Object
+
+type Object struct {
+	value *Obj
+}
+
+func (o *Object) asBool() bool {
+	panic("Can't coerce obj to bool")
+}
+
+func (o *Object) asNumber() float64 {
+	panic("Can't coerce obj to float")
+}
+
+func (o *Object) asNil() {
+	panic("Can't coerce nil to float")
+}
+
+func (o *Object) asObj() *Obj {
+	return o.value
+}
+
+// endregion Object
 
 // Value represents data in lox
 type Value struct {
@@ -124,6 +163,16 @@ func printValue(value Value) {
 		fmt.Printf("nil")
 	case VAL_NUMBER:
 		fmt.Printf("%g", valAsNumber(value))
+	case VAL_OBJ:
+		printObject(value)
+	}
+}
+
+func printObject(value Value) {
+	object := valAsObj(value)
+	switch object.typeof {
+	case STRING_TYPE:
+		fmt.Printf(*object.data.asString())
 	}
 }
 
@@ -155,6 +204,15 @@ func numberToVal(number float64) Value {
 	}
 }
 
+func objToVal(obj interface{}) Value {
+	return Value{
+		typeof: VAL_OBJ,
+		data: &Object{
+			value: dataToObj(obj),
+		},
+	}
+}
+
 func valAsBool(value Value) bool {
 	if value.typeof != VAL_BOOL {
 		panic("Tried to interpret an invalid value data bool")
@@ -169,8 +227,15 @@ func valAsNumber(value Value) float64 {
 	return value.data.asNumber()
 }
 
-func valAsNil() {
-	return
+func valAsNil(value Value) Nil {
+	return Nil{}
+}
+
+func valAsObj(value Value) *Obj {
+	if value.typeof != VAL_OBJ {
+		panic("Tried to interpret an invalid value data object")
+	}
+	return value.data.asObj()
 }
 
 func isBool(value Value) bool {
@@ -189,6 +254,10 @@ func isFalsey(value Value) bool {
 	return isNil(value) || (isBool(value) && !valAsBool(value))
 }
 
+func isObj(value Value) bool {
+	return value.typeof == VAL_OBJ
+}
+
 func valuesEqual(a Value, b Value) bool {
 	if a.typeof != b.typeof {
 		return false
@@ -200,6 +269,19 @@ func valuesEqual(a Value, b Value) bool {
 		return true
 	case VAL_NUMBER:
 		return valAsNumber(a) == valAsNumber(b)
+	case VAL_OBJ:
+		aObj := a.data.asObj()
+		bObj := b.data.asObj()
+		if aObj.typeof != bObj.typeof {
+			return false
+		}
+		if isString(aObj) && isString(bObj) {
+			aString := valAsObj(a).data.asString()
+			bString := valAsObj(b).data.asString()
+			return *aString == *bString
+		}
+		// No other objects implemented yet, so just return false
+		return false
 	default:
 		return false
 	}

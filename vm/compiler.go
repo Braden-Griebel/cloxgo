@@ -46,7 +46,7 @@ func (parser *Parser) InitRules() {
 		TOKEN_LESS:          {nil, parser.binary, PREC_COMPARISON},
 		TOKEN_LESS_EQUAL:    {nil, parser.binary, PREC_COMPARISON},
 		TOKEN_IDENTIFIER:    {nil, nil, PREC_NONE},
-		TOKEN_STRING:        {nil, nil, PREC_NONE},
+		TOKEN_STRING:        {parser.string, nil, PREC_NONE},
 		TOKEN_NUMBER:        {parser.number, nil, PREC_NONE},
 		TOKEN_AND:           {nil, nil, PREC_NONE},
 		TOKEN_CLASS:         {nil, nil, PREC_NONE},
@@ -92,6 +92,10 @@ func (parser *Parser) number() {
 		), 64,
 	)
 	parser.emitConstant(numberToVal(value))
+}
+
+func (parser *Parser) string() {
+	parser.emitConstant(objToVal(string(parser.scanner.code[parser.previous.start+1 : parser.previous.start+parser.previous.length-1])))
 }
 
 func (parser *Parser) emitConstant(value Value) {
