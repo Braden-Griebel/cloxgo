@@ -74,11 +74,39 @@ func Compile(source string, chunk *Chunk) bool {
 	parser := Parser{scanner: scanner, compilingChunk: chunk}
 	parser.InitRules()
 	parser.advance()
-	parser.expression()
-	parser.consume(TOKEN_EOF, "Expect end of expression.")
+
+	for !parser.match(TOKEN_EOF) {
+		parser.declaration()
+	}
+
+	//parser.consume(TOKEN_EOF, "Expect end of expression.")
 	parser.endCompiler()
 	return !parser.hadError
 }
+
+// region Declaration Parsing
+
+func (parser *Parser) declaration() {
+	parser.statement()
+}
+
+// endregion Declaration Parsing
+
+// region Statement Parsing
+
+func (parser *Parser) statement() {
+	if parser.match(TOKEN_PRINT) {
+		parser.printStatement()
+	}
+}
+
+func (parser *Parser) printStatement() {
+	parser.expression()
+	parser.consume(TOKEN_SEMICOLON, "Expect ';' after value.")
+	parser.emitByte(OP_PRINT)
+}
+
+// endregion Statement Parsing
 
 // region Expression Parsing
 func (parser *Parser) expression() {
@@ -297,6 +325,18 @@ func (parser *Parser) endCompiler() {
 
 func (parser *Parser) emitReturn() {
 	parser.emitByte(OP_RETURN)
+}
+
+func (parser *Parser) match(tokenType TokenType) bool {
+	if !parser.check(tokenType) {
+		return false
+	}
+	parser.advance()
+	return true
+}
+
+func (parser *Parser) check(tokenType TokenType) bool {
+	return parser.current.tokenType == tokenType
 }
 
 // endregion Helper Functions

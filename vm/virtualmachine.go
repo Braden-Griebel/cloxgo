@@ -217,6 +217,9 @@ func (machine *VM) run() InterpretResult {
 				return INTERPRET_RUNTIME_ERROR
 			}
 			machine.pushValue(numberToVal(-valAsNumber(machine.popValue())))
+		case OP_PRINT:
+			printValue(machine.popValue())
+			fmt.Print("\n")
 		case OP_RETURN:
 			printValue(machine.popValue())
 			fmt.Printf("\n")

@@ -30,6 +30,8 @@ const (
 	OP_NOT
 	// OP_NEGATE Represents Unary Negation
 	OP_NEGATE
+	// OP_PRINT Prints the top of the stack
+	OP_PRINT
 	// OP_RETURN Represents a function return
 	OP_RETURN
 )
