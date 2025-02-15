@@ -315,7 +315,6 @@ func (parser *Parser) currentChunk() *Chunk {
 }
 
 func (parser *Parser) endCompiler() {
-	parser.emitReturn()
 	if DEBUG_PRINT_CODE {
 		if !parser.hadError {
 			DisassembleChunk(parser.currentChunk(), "code")

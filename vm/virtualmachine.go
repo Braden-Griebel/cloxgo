@@ -160,6 +160,11 @@ func (machine *VM) binaryOp(f func(Value, Value) Value) InterpretResult {
 
 func (machine *VM) run() InterpretResult {
 	for {
+		// Check if the ip is beyond the instructions
+		if machine.ip >= uint(len(machine.chunk.Code)) {
+			return INTERPRET_OK // Reached the end of the instructions
+		}
+
 		if DEBUG_TRACE_EXECUTION {
 			disassembleInstruction(machine.chunk, machine.ip)
 			for slot := uint(0); slot < machine.stackTop; slot++ {
@@ -220,10 +225,6 @@ func (machine *VM) run() InterpretResult {
 		case OP_PRINT:
 			printValue(machine.popValue())
 			fmt.Print("\n")
-		case OP_RETURN:
-			printValue(machine.popValue())
-			fmt.Printf("\n")
-			return INTERPRET_OK
 		}
 	}
 }
